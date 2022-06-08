@@ -30,6 +30,11 @@ module.exports = {
       accounts:
         process.env.PRIVATE_KEY !== undefined ? [process.env.PRIVATE_KEY] : [],
     },
+    rinkleby: {
+      url: process.env.RINKEBY_URL || "",
+      accounts:
+        process.env.RINKEBY_PRIVATE_KEY !== undefined ? [process.env.RINKEBY_PRIVATE_KEY] : [],
+    }
   },
   gasReporter: {
     enabled: false,

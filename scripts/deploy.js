@@ -3,23 +3,38 @@
 //
 // When running the script with `npx hardhat run <script>` you'll find the Hardhat
 // Runtime Environment's members available in the global scope.
-const hre = require("hardhat");
+const {hre, ethers, upgrades} = require("hardhat");
 
 async function main() {
-  // Hardhat always runs the compile task when running scripts with its command
-  // line interface.
-  //
-  // If this script is run directly using `node` you may want to call compile
-  // manually to make sure everything is compiled
-  // await hre.run('compile');
+  await hre.run('compile');
 
-  // We get the contract to deploy
-  const Greeter = await hre.ethers.getContractFactory("Greeter");
-  const greeter = await Greeter.deploy("Hello, Hardhat!");
+  const [deployer] = await ethers.getSigners();
 
-  await greeter.deployed();
+	console.log(
+	"Deploying contracts with the account:",
+	deployer.address
+	);
 
-  console.log("Greeter deployed to:", greeter.address);
+	console.log("Account balance:", (await deployer.getBalance()).toString());
+
+
+  const Moonz = await ethers.getContractFactory("Moonz");
+  const Game = await ethers.getContractFactory("TycoonGame");
+  const Tycoons = await ethers.getContractFactory("WGMITycoons");
+  const Config = await ethers.getContractFactory("TycoonConfig");
+  const Holder = await ethers.getContractFactory("TycoonHolder");
+
+  moonzContract = await Moonz.deploy(ownerAddress);
+  gameContract = await upgrades.deployProxy(Game) //Game.deploy();
+  tycoonsContract = await Tycoons.deploy("Tycoons", "WGMIT", "HAHA/1", ownerAddress, moonzContract.address);
+  configContract = await Config.deploy(ownerAddress, tycoonsContract.address, gameContract.address);
+  holderContract = await Holder.deploy(gameContract.address, ownerAddress);
+
+  console.log("%s deploy at %s","Moonz",moonzContract.address)
+  console.log("%s deploy at %s","Game",gameContract.address)
+  console.log("%s deploy at %s","Tycoons",tycoonsContract.address)
+  console.log("%s deploy at %s","Config",configContract.address)
+  console.log("%s deploy at %s","Holder",holderContract.address)
 }
 
 // We recommend this pattern to be able to use async/await everywhere
