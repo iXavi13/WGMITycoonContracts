@@ -1,10 +1,10 @@
 const { expect } = require("chai");
 const { ethers } = require("hardhat");
 
-describe("Tycoon game functionality", function () {
+describe.only("Moonshot game functionality", function () {
     let gameContract;
     let moonzContract;
-    let tycoonsContract;
+    let tokenContract;
     let configContract;
     let owner;
     let addr1;
@@ -20,35 +20,34 @@ describe("Tycoon game functionality", function () {
         rosieAddress = await rosie.getAddress();
 
         const Moonz = await ethers.getContractFactory("Moonz");
-        const Game = await ethers.getContractFactory("TycoonGame");
-        const Tycoons = await ethers.getContractFactory("WGMITycoons");
-        const Config = await ethers.getContractFactory("TycoonConfig");
-        const Holder = await ethers.getContractFactory("TycoonHolder");
+        const Game = await ethers.getContractFactory("MoonshotGame");
+        const Moonshot = await ethers.getContractFactory("Moonshot");
+        const Config = await ethers.getContractFactory("MoonshotConfig");
+        const Holder = await ethers.getContractFactory("MoonshotHolder");
 
         moonzContract = await Moonz.deploy(ownerAddress);
         gameContract = await Game.deploy();
-        tycoonsContract = await Tycoons.deploy("Tycoons", "WGMIT", "HAHA/1", ownerAddress, moonzContract.address);
-        configContract = await Config.deploy(ownerAddress, tycoonsContract.address, gameContract.address);
+        tokenContract = await Moonshot.deploy("Moonshot", "MSHOT", "HAHA/1", ownerAddress, moonzContract.address);
+        configContract = await Config.deploy(ownerAddress, tokenContract.address, gameContract.address);
         holderContract = await Holder.deploy(gameContract.address, ownerAddress);
 
         await gameContract.initialize(ownerAddress);
-        await tycoonsContract.connect(owner).grantRole(await tycoonsContract.DEFAULT_ADMIN_ROLE(), gameContract.address);
-        await tycoonsContract.connect(owner).grantRole(await tycoonsContract.DEFAULT_ADMIN_ROLE(), configContract.address);
+        await tokenContract.connect(owner).grantRole(await tokenContract.DEFAULT_ADMIN_ROLE(), gameContract.address);
+        await tokenContract.connect(owner).grantRole(await tokenContract.DEFAULT_ADMIN_ROLE(), configContract.address);
         await gameContract.connect(owner).grantRole(await gameContract.GAME_ADMIN(), configContract.address);
         await moonzContract.connect(owner).grantRole(await moonzContract.MINTER_ROLE(), gameContract.address);
 
-        await holderContract.connect(owner).setTycoonInterface(tycoonsContract.address);
+        await holderContract.connect(owner).setMoonshotInterface(tokenContract.address);
         await holderContract.connect(owner).setApprovalForTransfer(gameContract.address, true);
-        await configContract.connect(owner).setInterfaces(moonzContract.address, tycoonsContract.address, holderContract.address);
-        await tycoonsContract.connect(owner).setPaused(false);
+        await configContract.connect(owner).setInterfaces(moonzContract.address, tokenContract.address, holderContract.address);
+        await tokenContract.connect(owner).setPaused(false);
 
         //ids - yields - cost - burn - supply
         await configContract.connect(owner)
-            .configureTycoon(
+            .configureBusiness(
                 [1,2],
                 [1000000000000000,5000000000000000],
                 [1,5],
-                [0,1],
                 [20000,20000]
             );
         //ids - levels - value - cost
@@ -69,7 +68,7 @@ describe("Tycoon game functionality", function () {
         await configContract.connect(owner).setCapAndMultiplierMaxLevels([1,2],[3,3],[3,3]);
 
         await moonzContract.connect(owner).mint(rosieAddress, "10000000000000000000000000000000000");
-        await moonzContract.connect(rosie).approve(tycoonsContract.address, "9999999999999999999999999999999999999");
+        await moonzContract.connect(rosie).approve(tokenContract.address, "9999999999999999999999999999999999999");
         await moonzContract.connect(rosie).approve(gameContract.address, "9999999999999999999999999999999999999");
         await gameContract.setYieldStart((Math.floor(Date.now()/1000)).toString());
 
@@ -77,9 +76,9 @@ describe("Tycoon game functionality", function () {
             value: ethers.utils.parseEther("0.1")
         };
 
-        await tycoonsContract.connect(rosie).setApprovalForAll(gameContract.address, true);
-        await tycoonsContract.connect(rosie).mintDegen(10, options);
-        await gameContract.connect(rosie).stakeTycoon(1,10);
+        await tokenContract.connect(rosie).setApprovalForAll(gameContract.address, true);
+        await tokenContract.connect(rosie).mintStarter(10, options);
+        await gameContract.connect(rosie).stakeBusiness(1,10);
         await gameContract.connect(rosie).mintAndStake([2], [1]);
     });
 
@@ -127,7 +126,7 @@ describe("Tycoon game functionality", function () {
 
     it("Increases capacity", async function () {
         const increase = await gameContract.connect(rosie).increaseCaps([1]);
-        const capLevel = Number((await gameContract.tycoons(rosieAddress,1)).capacityLevel);
+        const capLevel = Number((await gameContract.business(rosieAddress,1)).capacityLevel);
 
         expect(increase).to.be.not.undefined;
         expect(increase).to.be.not.null;
@@ -136,7 +135,7 @@ describe("Tycoon game functionality", function () {
 
     it("Increases multiplier", async function () {
         const increase = await gameContract.connect(rosie).increaseMultipliers([1]);
-        const multiplierLevel = Number((await gameContract.tycoons(rosieAddress,1)).multiplierLevel);
+        const multiplierLevel = Number((await gameContract.business(rosieAddress,1)).multiplierLevel);
 
         expect(increase).to.be.not.undefined;
         expect(increase).to.be.not.null;
@@ -145,8 +144,8 @@ describe("Tycoon game functionality", function () {
 
     it("Increases caps and multipliers in one", async function () {
         const increase = await gameContract.connect(rosie).increaseCapsAndMultipliers([1,1], [1]);
-        const capLevel = Number((await gameContract.tycoons(rosieAddress,1)).capacityLevel);
-        const multiplierLevel = Number((await gameContract.tycoons(rosieAddress,1)).multiplierLevel);
+        const capLevel = Number((await gameContract.business(rosieAddress,1)).capacityLevel);
+        const multiplierLevel = Number((await gameContract.business(rosieAddress,1)).multiplierLevel);
 
         expect(increase).to.be.not.undefined;
         expect(increase).to.be.not.null;
@@ -181,7 +180,7 @@ describe("Tycoon game functionality", function () {
         let moonzBalanceAfterClaim = await moonzContract.balanceOf(rosieAddress);
         const preIncreaseClaim = Number(moonzBalanceAfterClaim) - Number(moonzBalance)
 
-        const increase = await gameContract.connect(rosie).unstakeTycoon(1,1);
+        const increase = await gameContract.connect(rosie).unstakeBusiness(1,1);
 
         moonzBalance = await moonzContract.balanceOf(rosieAddress);
         claim = await gameContract.connect(rosie).claim([1]);
@@ -196,46 +195,46 @@ describe("Tycoon game functionality", function () {
 
     it('Unstakes tokens to address', async function () {
         const preUnstake = await gameContract.stakedTokens(rosieAddress,1)
-        const preTokenBalance = await tycoonsContract.balanceOf(rosieAddress,1);
-        await gameContract.connect(rosie).unstakeTycoon(1,5)
+        const preTokenBalance = await tokenContract.balanceOf(rosieAddress,1);
+        await gameContract.connect(rosie).unstakeBusiness(1,5)
         const postUnstake = await gameContract.stakedTokens(rosieAddress,1)
-        const postTokenBalance = await tycoonsContract.balanceOf(rosieAddress,1);
+        const postTokenBalance = await tokenContract.balanceOf(rosieAddress,1);
 
         expect(postUnstake).to.be.equal(preUnstake - 5);
         expect(postTokenBalance).to.be.equal(preTokenBalance + 5);
     })
 
-    it("Mints configured tycoon", async function () {
+    it("Mints configured business", async function () {
       const mint = await gameContract.connect(rosie).mintAndStake([2], [1]);
 
       expect(mint).to.be.not.undefined;
       expect(mint).to.be.not.null;
     });
 
-    it("Mints tycoon with burn", async function () {
+    it("Mints business with burn", async function () {
       const options = {
           value: ethers.utils.parseEther("0.1")
       };
 
-      const mintDegen = await tycoonsContract.connect(rosie).mintDegen(10, options);
-      const mintBalance = await tycoonsContract.balanceOf(rosieAddress, 1);
-      await gameContract.connect(rosie).stakeTycoon(1,10);
+      const mintStarter = await tokenContract.connect(rosie).mintStarter(10, options);
+      const mintBalance = await tokenContract.balanceOf(rosieAddress, 1);
+      await gameContract.connect(rosie).stakeBusiness(1,10);
       const mint = await gameContract.connect(rosie).mintAndStake([2], [1]);
-      await gameContract.connect(rosie).unstakeTycoon(1,9)
-      const mintBalanceAfterBurn = await tycoonsContract.balanceOf(rosieAddress, 1);
+      await gameContract.connect(rosie).unstakeBusiness(1,9)
+      const mintBalanceAfterBurn = await tokenContract.balanceOf(rosieAddress, 1);
 
-      expect(mintDegen).to.be.not.undefined;
-      expect(mintDegen).to.be.not.null;
+      expect(mintStarter).to.be.not.undefined;
+      expect(mintStarter).to.be.not.null;
       expect(mint).to.be.not.undefined;
       expect(mint).to.be.not.null;
       expect(mintBalance).to.not.be.equal(mintBalanceAfterBurn)
     });
 });
 
-describe.only("Tycoon game failures", function () {
+describe.only("Moonshot game failures", function () {
     let gameContract;
     let moonzContract;
-    let tycoonsContract;
+    let tokenContract;
     let configContract;
     let owner;
     let addr1;
@@ -251,27 +250,27 @@ describe.only("Tycoon game failures", function () {
         rosieAddress = await rosie.getAddress();
 
         const Moonz = await ethers.getContractFactory("Moonz");
-        const Game = await ethers.getContractFactory("TycoonGame");
-        const Tycoons = await ethers.getContractFactory("WGMITycoons");
-        const Config = await ethers.getContractFactory("TycoonConfig");
-        const Holder = await ethers.getContractFactory("TycoonHolder");
+        const Game = await ethers.getContractFactory("MoonshotGame");
+        const Moonshot = await ethers.getContractFactory("Moonshot");
+        const Config = await ethers.getContractFactory("MoonshotConfig");
+        const Holder = await ethers.getContractFactory("MoonshotHolder");
 
         moonzContract = await Moonz.deploy(ownerAddress);
         gameContract = await Game.deploy();
-        tycoonsContract = await Tycoons.deploy("Tycoons", "WGMIT", "HAHA/1", ownerAddress, moonzContract.address);
-        configContract = await Config.deploy(ownerAddress, tycoonsContract.address, gameContract.address);
+        tokenContract = await Moonshot.deploy("Moonshot", "MSHOT", "HAHA/1", ownerAddress, moonzContract.address);
+        configContract = await Config.deploy(ownerAddress, tokenContract.address, gameContract.address);
         holderContract = await Holder.deploy(gameContract.address, ownerAddress);
 
         await gameContract.initialize(ownerAddress);
-        await tycoonsContract.connect(owner).grantRole(await tycoonsContract.DEFAULT_ADMIN_ROLE(), gameContract.address);
-        await tycoonsContract.connect(owner).grantRole(await tycoonsContract.DEFAULT_ADMIN_ROLE(), configContract.address);
+        await tokenContract.connect(owner).grantRole(await tokenContract.DEFAULT_ADMIN_ROLE(), gameContract.address);
+        await tokenContract.connect(owner).grantRole(await tokenContract.DEFAULT_ADMIN_ROLE(), configContract.address);
         await gameContract.connect(owner).grantRole(await gameContract.GAME_ADMIN(), configContract.address);
         await moonzContract.connect(owner).grantRole(await moonzContract.MINTER_ROLE(), gameContract.address);
 
-        await holderContract.connect(owner).setTycoonInterface(tycoonsContract.address);
+        await holderContract.connect(owner).setMoonshotInterface(tokenContract.address);
         await holderContract.connect(owner).setApprovalForTransfer(gameContract.address, true);
-        await configContract.connect(owner).setInterfaces(moonzContract.address, tycoonsContract.address, holderContract.address);
-        await tycoonsContract.connect(owner).setPaused(false);
+        await configContract.connect(owner).setInterfaces(moonzContract.address, tokenContract.address, holderContract.address);
+        await tokenContract.connect(owner).setPaused(false);
 
         //ids - levels - value - cost
         await configContract.connect(owner)
@@ -291,7 +290,7 @@ describe.only("Tycoon game failures", function () {
         await configContract.connect(owner).setCapAndMultiplierMaxLevels([1,2],[3,3],[3,3]);
 
         // await moonzContract.connect(owner).mint(rosieAddress, "10000000000000000000000000000000000");
-        // await moonzContract.connect(rosie).approve(tycoonsContract.address, "9999999999999999999999999999999999999");
+        // await moonzContract.connect(rosie).approve(tokenContract.address, "9999999999999999999999999999999999999");
         // await moonzContract.connect(rosie).approve(gameContract.address, "9999999999999999999999999999999999999");
         await gameContract.setYieldStart((Math.floor(Date.now()/1000)).toString());
 
@@ -299,63 +298,44 @@ describe.only("Tycoon game failures", function () {
             value: ethers.utils.parseEther("0.1")
         };
 
-        await tycoonsContract.connect(rosie).setApprovalForAll(gameContract.address, true);
+        await tokenContract.connect(rosie).setApprovalForAll(gameContract.address, true);
     });
 
-    it("Fails to mint tycoon with no allowance", async function () {
+    it("Fails to mint business with no allowance", async function () {
         const options = {
             value: ethers.utils.parseEther("0.1")
         };
 
-        await configContract.connect(owner).configureTycoon([1],[1],[1],[0],[20000]);
-        await configContract.connect(owner).configureTycoon([2],[5],[5],[1],[20000]);
+        await configContract.connect(owner).configureBusiness([1],[1],[1],[20000]);
+        await configContract.connect(owner).configureBusiness([2],[5],[5],[20000]);
         await moonzContract.connect(owner).mint(rosieAddress, "1000000000000000000000000000000");
 
-        const mintDegen = await tycoonsContract.connect(rosie).mintDegen(10, options);
-        await gameContract.connect(rosie).stakeTycoon(1,10);
+        const mintStarter = await tokenContract.connect(rosie).mintStarter(10, options);
+        await gameContract.connect(rosie).stakeBusiness(1,10);
         const mint = gameContract.connect(rosie).mintAndStake([2], [1]);
 
-        expect(mintDegen).to.be.not.undefined;
-        expect(mintDegen).to.be.not.null;
+        expect(mintStarter).to.be.not.undefined;
+        expect(mintStarter).to.be.not.null;
         await expect(mint).to.be.revertedWith("0: insufficient allowance");
     });
 
-    it("Fails to mint tycoon with no balance", async function () {
+    it("Fails to mint business with no balance", async function () {
         const options = {
             value: ethers.utils.parseEther("0.1")
         };
 
-        await configContract.connect(owner).configureTycoon([1],[1],[1],[0],[20000]);
-        await configContract.connect(owner).configureTycoon([2],[5],[5],[1],[20000]);
+        await configContract.connect(owner).configureBusiness([1],[1],[1],[20000]);
+        await configContract.connect(owner).configureBusiness([2],[5],[5],[20000]);
         await moonzContract.connect(owner).mint(rosieAddress, "1");
         await moonzContract.connect(rosie).approve(gameContract.address, "1000000000000000000000000000000");
 
-        const mintDegen = await tycoonsContract.connect(rosie).mintDegen(10, options);
-        await gameContract.connect(rosie).stakeTycoon(1,10);
+        const mintStarter = await tokenContract.connect(rosie).mintStarter(10, options);
+        await gameContract.connect(rosie).stakeBusiness(1,10);
         const mint = gameContract.connect(rosie).mintAndStake([2], [1]);
 
-        expect(mintDegen).to.be.not.undefined;
-        expect(mintDegen).to.be.not.null;
+        expect(mintStarter).to.be.not.undefined;
+        expect(mintStarter).to.be.not.null;
         await expect(mint).to.be.revertedWith("burn amount exceeds balance");
-    });
-
-    it("Fails to mint with insufficient tycoon burn", async function () {
-        const options = {
-            value: ethers.utils.parseEther("0.1")
-        };
-
-        await configContract.connect(owner).configureTycoon([1],[1],[2],[0],[20000]);
-        await configContract.connect(owner).configureTycoon([2],[5],[5],[2],[20000]);
-        await moonzContract.connect(owner).mint(rosieAddress, "1000000000000000000000000000000");
-        await moonzContract.connect(rosie).approve(tycoonsContract.address, "1000000000000000000000000000000");
-
-        const mintDegen = await tycoonsContract.connect(rosie).mintDegen(1, options);
-        await gameContract.connect(rosie).stakeTycoon(1,1);
-        const mint = gameContract.connect(rosie).mintAndStake([2], [1]);
-
-        expect(mintDegen).to.be.not.undefined;
-        expect(mintDegen).to.be.not.null;
-        await expect(mint).to.be.revertedWith("Burn balance insufficient");
     });
 
     it("Fails to mint with max supply reached", async function () {
@@ -363,55 +343,53 @@ describe.only("Tycoon game failures", function () {
             value: ethers.utils.parseEther("0.1")
         };
 
-        await configContract.connect(owner).configureTycoon([1],[1],[1],[0],[20000]);
-        await configContract.connect(owner).configureTycoon([2],[5],[5],[1],[1]);
+        await configContract.connect(owner).configureBusiness([1],[1],[1],[20000]);
+        await configContract.connect(owner).configureBusiness([2],[5],[5],[1]);
         await moonzContract.connect(owner).mint(rosieAddress, "100000000000000000000000000000");
         await moonzContract.connect(rosie).approve(gameContract.address, "1000000000000000000000000000000");
 
-        const mintDegen = await tycoonsContract.connect(rosie).mintDegen(10, options);
-        await gameContract.connect(rosie).stakeTycoon(1,10);
+        const mintStarter = await tokenContract.connect(rosie).mintStarter(10, options);
+        await gameContract.connect(rosie).stakeBusiness(1,10);
         const mint = gameContract.connect(rosie).mintAndStake([2], [2]);
 
-        expect(mintDegen).to.be.not.undefined;
-        expect(mintDegen).to.be.not.null;
+        expect(mintStarter).to.be.not.undefined;
+        expect(mintStarter).to.be.not.null;
         await expect(mint).to.be.revertedWith("Max supply reached");
     });
 
-    it("Fails to mint tycoon with no yield set", async function () {
+    it("Fails to mint business with no yield set", async function () {
         const options = {
             value: ethers.utils.parseEther("0.1")
         };
 
-        await tycoonsContract.connect(owner).setTycoonMaxSupply([1,2],[10000,10000])
+        await tokenContract.connect(owner).setBusinessMaxSupply([1,2],[10000,10000])
         await moonzContract.connect(owner).mint(rosieAddress, "1000000000000000000000000000000");
-        await moonzContract.connect(rosie).approve(tycoonsContract.address, "1000000000000000000000000000000")
-        const mintDegen = await tycoonsContract.connect(rosie).mintDegen(10, options);
-        await gameContract.connect(rosie).stakeTycoon(1,10);
-        await tycoonsContract.connect(owner).mint(ownerAddress,2,1);
-        const mint = gameContract.connect(rosie).mintAndStake([2], [1]);
+        await moonzContract.connect(rosie).approve(tokenContract.address, "1000000000000000000000000000000")
+        const mintStarter = await tokenContract.connect(rosie).mintStarter(10, options);
+        const staking = gameContract.connect(rosie).stakeBusiness(1,10);
 
-        expect(mintDegen).to.be.not.undefined;
-        expect(mintDegen).to.be.not.null;
-        await expect(mint).to.be.revertedWith('Yield not set');
+        expect(mintStarter).to.be.not.undefined;
+        expect(mintStarter).to.be.not.null;
+        await expect(staking).to.be.revertedWith('Yield not set');
     });
 
-    it.only("Fails to mint tycoon with no config", async function () {
+    it("Fails to mint business with no config", async function () {
         const options = {
             value: ethers.utils.parseEther("0.1")
         };
 
-        await tycoonsContract.connect(owner).setTycoonMaxSupply([1,2],[10000,10000])
+        await tokenContract.connect(owner).setBusinessMaxSupply([1,2],[10000,10000])
         await configContract.connect(owner).setYields([1,2],[200000,20000]);
         await moonzContract.connect(owner).mint(rosieAddress, "1000000000000000000000000000000");
-        await moonzContract.connect(rosie).approve(tycoonsContract.address, "1000000000000000000000000000000")
-        const mintDegen = await tycoonsContract.connect(rosie).mintDegen(10, options);
-        await gameContract.connect(rosie).stakeTycoon(1,10);
-        await tycoonsContract.connect(owner).mint(ownerAddress,2,1);
+        await moonzContract.connect(rosie).approve(tokenContract.address, "1000000000000000000000000000000")
+        const mintStarter = await tokenContract.connect(rosie).mintStarter(10, options);
+        await gameContract.connect(rosie).stakeBusiness(1,10);
+        await tokenContract.connect(owner).mint(ownerAddress,2,1);
         const mint = gameContract.connect(rosie).mintAndStake([2], [1]);
 
-        expect(mintDegen).to.be.not.undefined;
-        expect(mintDegen).to.be.not.null;
-        await expect(mint).to.be.revertedWith('Tycoon not configured');
+        expect(mintStarter).to.be.not.undefined;
+        expect(mintStarter).to.be.not.null;
+        await expect(mint).to.be.revertedWith('Business not configured');
     });
 
 })

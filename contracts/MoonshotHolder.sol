@@ -9,20 +9,20 @@ import "@openzeppelin/contracts/token/ERC1155/IERC1155.sol";
 
 
 //I exist to hug and safe guard your tokens
-contract TycoonHolder is ERC1155Holder, AccessControl {
-    IERC1155 public tycoons;
+contract MoonshotHolder is ERC1155Holder, AccessControl {
+    IERC1155 public moonshot;
 
     constructor(address gameAddress, address gameAdmin) {
         _setupRole(DEFAULT_ADMIN_ROLE, gameAddress);
         _setupRole(DEFAULT_ADMIN_ROLE, gameAdmin);
     }
 
-    function setTycoonInterface(IERC1155 tycoonInterface) external onlyRole(DEFAULT_ADMIN_ROLE){
-        tycoons = tycoonInterface;
+    function setMoonshotInterface(IERC1155 moonshotInterface) external onlyRole(DEFAULT_ADMIN_ROLE){
+        moonshot = moonshotInterface;
     }
 
     function setApprovalForTransfer(address operator, bool approved) external onlyRole(DEFAULT_ADMIN_ROLE){
-        tycoons.setApprovalForAll(operator, approved);
+        moonshot.setApprovalForAll(operator, approved);
     }
 
     function supportsInterface(bytes4 interfaceId) 

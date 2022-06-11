@@ -10,13 +10,13 @@ import "@openzeppelin/contracts/token/ERC1155/extensions/ERC1155Burnable.sol";
 import "@openzeppelin/contracts/token/ERC1155/extensions/ERC1155Pausable.sol";
 import "./IMoonz.sol";
 
-contract WGMITycoons is ERC1155, ERC1155Supply, ERC1155Burnable, AccessControl {
+contract Moonshot is ERC1155, ERC1155Supply, ERC1155Burnable, AccessControl {
     string public name_;
     string public symbol_; 
     string public metadataURI_;
     IMoonz public moonz;
 
-    struct TycoonCost {
+    struct MoonshotCost {
         uint128 burnAmount;
         uint128 moonzCost;
     }
@@ -37,14 +37,14 @@ contract WGMITycoons is ERC1155, ERC1155Supply, ERC1155Burnable, AccessControl {
         _setupRole(DEFAULT_ADMIN_ROLE, admin);
     }
 
-    uint256 public TYCOON_PRICE = 0.00 ether; //Change to price
+    uint256 public MOONSHOT_PRICE = 0.00 ether; //Change to price
     uint256 public MAX_PAYABLE_SUPPLY = 10000;
 
-    uint256 initialDegenSupply = 0;
+    uint256 starterSupply = 0;
     bool public paused = true;
 
-    mapping(uint256 => TycoonCost) public tycoonCost;
-    mapping(uint256 => uint256) public maxTycoonSupply;
+    mapping(uint256 => MoonshotCost) public moonshotCost;
+    mapping(uint256 => uint256) public maxBusinessSupply;
 
     modifier callerIsUser() {
         require(tx.origin == msg.sender, "No contracts");
@@ -56,18 +56,17 @@ contract WGMITycoons is ERC1155, ERC1155Supply, ERC1155Burnable, AccessControl {
         _;
     }
 
-    //Switch this to golden WGMI?
-    function mintDegen(uint256 mintAmount) external payable callerIsUser() isNotPaused() {
+    function mintStarter(uint256 mintAmount) external payable callerIsUser() isNotPaused() {
         require(mintAmount > 0, "Incorrect mint amount");
-        require(msg.value >= TYCOON_PRICE * mintAmount, "Incorrect ETH Amount");
-        require(initialDegenSupply + mintAmount < MAX_PAYABLE_SUPPLY + 1, "Exceeded payable supply");
+        require(msg.value >= MOONSHOT_PRICE * mintAmount, "Incorrect ETH Amount");
+        require(starterSupply + mintAmount < MAX_PAYABLE_SUPPLY + 1, "Exceeded payable supply");
 
-        initialDegenSupply += mintAmount;
+        starterSupply += mintAmount;
         _mint(msg.sender, 1, mintAmount, "");
     }
 
-    function mintTycoons(address to, uint id, uint amount) external onlyRole(DEFAULT_ADMIN_ROLE) {
-        require(totalSupply(id) + amount < maxTycoonSupply[id] + 1, "Max supply reached");
+    function mintBusiness(address to, uint id, uint amount) external onlyRole(DEFAULT_ADMIN_ROLE) {
+        require(totalSupply(id) + amount < maxBusinessSupply[id] + 1, "Max supply reached");
         _mint(to, id, amount, "");
     }
 
@@ -91,22 +90,22 @@ contract WGMITycoons is ERC1155, ERC1155Supply, ERC1155Burnable, AccessControl {
         paused = paused_;
     }
 
-    function setTycoonCost(uint256[] calldata ids, uint256[] calldata burnAmount, uint256[] calldata moonzCost) external onlyRole(DEFAULT_ADMIN_ROLE) {
+    function setMoonshotCost(uint256[] calldata ids, uint256[] calldata burnAmount, uint256[] calldata moonzCost) external onlyRole(DEFAULT_ADMIN_ROLE) {
         require(ids.length == burnAmount.length && burnAmount.length == moonzCost.length, "Incorrect array lengths");
         for (uint256 i = 0; i < ids.length; i++) {
             uint256 id = ids[i];
-            tycoonCost[id] = TycoonCost(
+            moonshotCost[id] = MoonshotCost(
                 uint128(burnAmount[i]),
                 uint128(moonzCost[i])
             );
         }
     }
 
-    function setTycoonMaxSupply(uint256[] calldata ids, uint256[] calldata supply) external onlyRole(DEFAULT_ADMIN_ROLE) {
+    function setBusinessMaxSupply(uint256[] calldata ids, uint256[] calldata supply) external onlyRole(DEFAULT_ADMIN_ROLE) {
         require(ids.length == supply.length, "Incorrect array lengths");
         for (uint256 i = 0; i < ids.length; i++) {
             uint256 id = ids[i];
-            maxTycoonSupply[id] = supply[i];
+            maxBusinessSupply[id] = supply[i];
         }
     }
 

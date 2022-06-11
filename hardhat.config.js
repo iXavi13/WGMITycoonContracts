@@ -5,6 +5,7 @@ require("@nomiclabs/hardhat-waffle");
 require("hardhat-gas-reporter");
 require("solidity-coverage");
 require('hardhat-contract-sizer');
+require('@openzeppelin/hardhat-upgrades');
 
 // This is a sample Hardhat task. To learn how to create your own go to
 // https://hardhat.org/guides/create-task.html
@@ -30,16 +31,16 @@ module.exports = {
       accounts:
         process.env.PRIVATE_KEY !== undefined ? [process.env.PRIVATE_KEY] : [],
     },
-    rinkleby: {
+    rinkeby: {
       url: process.env.RINKEBY_URL || "",
       accounts:
         process.env.RINKEBY_PRIVATE_KEY !== undefined ? [process.env.RINKEBY_PRIVATE_KEY] : [],
     }
   },
   gasReporter: {
-    enabled: false,
+    enabled: true,
     currency: 'USD',
-    gasPrice: 80,
+    gasPrice: 120,
     coinmarketcap: 'c839bf6a-e78a-4fc5-9079-4f3d927389ca',
   },
   etherscan: {

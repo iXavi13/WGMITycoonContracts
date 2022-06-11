@@ -6,51 +6,49 @@ import "@openzeppelin/contracts/utils/Strings.sol";
 import "@openzeppelin/contracts/access/AccessControl.sol";
 import "@openzeppelin/contracts/token/ERC1155/IERC1155.sol";
 import "@openzeppelin/contracts/token/ERC1155/ERC1155.sol";
-import "./ITycoonGame.sol";
-import "./IWGMITConfig.sol";
+import "./IMoonshotGame.sol";
+import "./IMoonshotConfig.sol";
 
-contract TycoonConfig is AccessControl {
+contract MoonshotConfig is AccessControl {
     bytes32 public constant GAME_ADMIN = keccak256("GAME_ADMIN");
-    IWGMITycoonConfig public tycoonInterface;
-    ITycoonGame public game;
+    IMoonshotConfig public token;
+    IMoonshotGame public game;
 
-    constructor(address admin, IWGMITycoonConfig tycoonInterface_, ITycoonGame game_) {
+    constructor(address admin, IMoonshotConfig token_, IMoonshotGame game_) {
         _setupRole(DEFAULT_ADMIN_ROLE, admin);
         _setupRole(GAME_ADMIN, admin);
-        tycoonInterface = tycoonInterface_;
+        token = token_;
         game = game_;
     }
 
     function setConfigInterfaces(
-        IWGMITycoonConfig tycoonInterface_, 
-        ITycoonGame game_
+        IMoonshotConfig token_, 
+        IMoonshotGame game_
     ) external onlyRole(GAME_ADMIN){
-        tycoonInterface = tycoonInterface_;
+        token = token_;
         game = game_;
     }
 
-    function configureTycoon(
+    function configureBusiness(
         uint256[] calldata ids, 
         uint256[] calldata yields_,
-        uint256[] calldata tycoonCost_,
-        uint256[] calldata tycoonBurnAmount_,
-        uint256[] calldata tycoonSupply_
+        uint256[] calldata businessCost_,
+        uint256[] calldata businessSupply_
         ) external onlyRole(GAME_ADMIN) {
         require(
             ids.length == yields_.length 
-            && ids.length == tycoonCost_.length 
-            && ids.length == tycoonBurnAmount_.length 
-            && ids.length == tycoonSupply_.length, 
+            && ids.length == businessCost_.length
+            && ids.length == businessSupply_.length, 
             "Incorrect array lengths"
         );
 
-        game.setTycoonCost(ids, tycoonBurnAmount_, tycoonCost_);
+        game.setBusinessCost(ids, businessCost_);
         game.setYields(ids,yields_);
-        tycoonInterface.setTycoonMaxSupply(ids, tycoonSupply_);
+        token.setBusinessMaxSupply(ids, businessSupply_);
     }
 
-    function setInterfaces(IMoonz IMoonz_, IWGMITycoon IWGMITycoon_, IERC1155 holderInterface) external onlyRole(GAME_ADMIN) {
-        game.setInterfaces(IMoonz_, IWGMITycoon_, holderInterface);
+    function setInterfaces(IMoonz IMoonz_, IMoonshotToken IMoonshot_, IERC1155 holderInterface) external onlyRole(GAME_ADMIN) {
+        game.setInterfaces(IMoonz_, IMoonshot_, holderInterface);
     }
 
     function setMultiplierLevels(

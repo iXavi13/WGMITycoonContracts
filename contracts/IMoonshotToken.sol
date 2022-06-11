@@ -4,9 +4,9 @@ pragma solidity ^0.8.0;
 
 import "@openzeppelin/contracts-upgradeable/token/ERC1155/IERC1155Upgradeable.sol";
 
-interface IWGMITycoon is IERC1155Upgradeable {
+interface IMoonshotToken is IERC1155Upgradeable {
 
-    function mintTycoons(
+    function mintBusiness(
         address to,
         uint256 id, 
         uint256 amount) 

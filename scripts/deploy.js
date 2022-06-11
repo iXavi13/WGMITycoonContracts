@@ -6,7 +6,7 @@
 const {hre, ethers, upgrades} = require("hardhat");
 
 async function main() {
-  await hre.run('compile');
+  // await hre.run('compile');
 
   const [deployer] = await ethers.getSigners();
 
@@ -24,11 +24,11 @@ async function main() {
   const Config = await ethers.getContractFactory("TycoonConfig");
   const Holder = await ethers.getContractFactory("TycoonHolder");
 
-  moonzContract = await Moonz.deploy(ownerAddress);
-  gameContract = await upgrades.deployProxy(Game) //Game.deploy();
-  tycoonsContract = await Tycoons.deploy("Tycoons", "WGMIT", "HAHA/1", ownerAddress, moonzContract.address);
-  configContract = await Config.deploy(ownerAddress, tycoonsContract.address, gameContract.address);
-  holderContract = await Holder.deploy(gameContract.address, ownerAddress);
+  gameContract = await upgrades.deployProxy(Game, [deployer.address]) //Game.deploy();
+  moonzContract = await Moonz.deploy(deployer.address);
+  tycoonsContract = await Tycoons.deploy("Tycoons", "WGMIT", "HAHA/1", deployer.address, moonzContract.address);
+  configContract = await Config.deploy(deployer.address, tycoonsContract.address, gameContract.address);
+  holderContract = await Holder.deploy(gameContract.address, deployer.address);
 
   console.log("%s deploy at %s","Moonz",moonzContract.address)
   console.log("%s deploy at %s","Game",gameContract.address)

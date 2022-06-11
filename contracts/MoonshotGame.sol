@@ -7,9 +7,9 @@ import "@openzeppelin/contracts-upgradeable/access/AccessControlUpgradeable.sol"
 import "@openzeppelin/contracts-upgradeable/proxy/utils/Initializable.sol";
 import "@openzeppelin/contracts-upgradeable/security/ReentrancyGuardUpgradeable.sol";
 import "@openzeppelin/contracts-upgradeable/token/ERC1155/IERC1155Upgradeable.sol";
-import "./ITycoon.sol";
+import "./IMoonshot.sol";
 import "./IMoonz.sol";
-import "./IWGMIT.sol";
+import "./IMoonshotToken.sol";
 
 
 //TODO LIST
@@ -18,10 +18,10 @@ import "./IWGMIT.sol";
 // BURN AND STAKE - BURN MOONZ FROM CONTRACT - BURN FROM STAKED - MINT TO CONTRACT - ADD TO STAKED
 // Consider Paused
 
-contract TycoonGame is Initializable, ITycoon, AccessControlUpgradeable, ReentrancyGuardUpgradeable {
+contract MoonshotGame is Initializable, IMoonshot, AccessControlUpgradeable, ReentrancyGuardUpgradeable {
     bytes32 public constant GAME_ADMIN = keccak256("GAME_ADMIN");
     IERC1155Upgradeable public tokenHolder;
-    IWGMITycoon public tycoonInterface;
+    IMoonshotToken public moonshotInterface;
     IMoonz public moonz;
 
     function initialize(address admin) external initializer {
@@ -33,17 +33,17 @@ contract TycoonGame is Initializable, ITycoon, AccessControlUpgradeable, Reentra
      
     // Yield Info
     uint256 public yieldStartTime;
-    bool public paused = false;
+    bool public paused;
     
-    //Player => Tycoon ID => Tycoon Info
-    mapping(address => mapping (uint256 => Tycoon)) public tycoons;
+    //Player => Moonshot ID => Moonshot Info
+    mapping(address => mapping (uint256 => Business)) public business;
 
-    //Tycoon ID => Value
+    //Moonshot ID => Value
     mapping(uint256 => uint256) public yield;
-    mapping(uint256 => TycoonCost) public tycoonCost;
+    mapping(uint256 => uint256) public businessCost;
     mapping(uint256 => MaxLevels) public maxLevel;
 
-    //Tycoon ID => Level => Multiplier/Capacity/Cost
+    //Moonshot ID => Level => Multiplier/Capacity/Cost
     mapping(uint256 => mapping (uint256 => Multipliers)) public multiplier;
     mapping(uint256 => mapping (uint256 => Capacities)) public capacity;
     mapping(address => mapping (uint256 => uint256)) public stakedTokens;
@@ -53,24 +53,24 @@ contract TycoonGame is Initializable, ITycoon, AccessControlUpgradeable, Reentra
         _;
     }
 
-    function stakeTycoon(uint256 id, uint256 amount) external nonReentrant callerIsUser() {
+    function stakeBusiness(uint256 id, uint256 amount) external nonReentrant callerIsUser() {
         require(yield[id] > 0, "Yield not set");
         
-        tycoonInterface.safeTransferFrom(msg.sender, address(tokenHolder), id, amount, "");
+        moonshotInterface.safeTransferFrom(msg.sender, address(tokenHolder), id, amount, "");
         stakedTokens[msg.sender][id] += amount;
-        if(tycoons[msg.sender][id].lastClaim == 0){
-            _initializeTycoon(id);
+        if(business[msg.sender][id].lastClaim == 0){
+            _initializeBusiness(id);
         }
-        emit TycoonStaked(msg.sender, id, stakedTokens[msg.sender][id]);
+        emit BusinessStaked(msg.sender, id, stakedTokens[msg.sender][id]);
     }
 
-    function unstakeTycoon(uint256 id, uint256 amount) external nonReentrant callerIsUser() {
+    function unstakeBusiness(uint256 id, uint256 amount) external nonReentrant callerIsUser() {
         require(amount < stakedTokens[msg.sender][id] + 1, "Exceeded staked amount");
 
-        tycoonInterface.safeTransferFrom(address(tokenHolder), msg.sender, id, amount, "");
+        moonshotInterface.safeTransferFrom(address(tokenHolder), msg.sender, id, amount, "");
         stakedTokens[msg.sender][id] -= amount;
-        tycoons[msg.sender][id].lastClaim = uint64(block.timestamp);
-        emit TycoonUnstaked(msg.sender, id, stakedTokens[msg.sender][id]);
+        business[msg.sender][id].lastClaim = uint64(block.timestamp);
+        emit BusinessUnstaked(msg.sender, id, stakedTokens[msg.sender][id]);
     }
 
     function claim(uint256[] calldata ids) external nonReentrant callerIsUser() {
@@ -89,18 +89,15 @@ contract TycoonGame is Initializable, ITycoon, AccessControlUpgradeable, Reentra
         //How do we get the moonz?
         for (uint256 i = 0; i < ids.length;) {
             uint256 id = ids[i];
-            uint256 cost = uint256(tycoonCost[id].moonzCost);
-            uint256 burnAmount = uint256(tycoonCost[id].burnAmount);
+            uint256 cost = uint256(businessCost[id]);
             uint256 mintAmount = amounts[i];
-            require(cost > 0, "Tycoon not configured");
-            require(stakedTokens[msg.sender][id - 1] > (burnAmount * mintAmount) - 1, "Burn balance insufficient");
+            require(cost > 0, "Business not configured");
 
             moonz.burnFrom(msg.sender, cost * 1 ether);
-            tycoonInterface.burn(address(tokenHolder), id - 1, burnAmount * mintAmount);
+            moonshotInterface.mintBusiness(address(tokenHolder), id, mintAmount);
 
-            tycoonInterface.mintTycoons(address(tokenHolder), id, mintAmount);
-            if(tycoons[msg.sender][id].lastClaim == 0){
-                _initializeTycoon(id);
+            if(business[msg.sender][id].lastClaim == 0){
+                _initializeBusiness(id);
             }
             stakedTokens[msg.sender][id] += mintAmount;
             unchecked { ++i; }
@@ -118,11 +115,11 @@ contract TycoonGame is Initializable, ITycoon, AccessControlUpgradeable, Reentra
     }
 
     function increaseCaps(uint256[] calldata ids) public callerIsUser() {
-        require(ids.length > 0, "No tycoon selected");
+        require(ids.length > 0, "No moonshot selected");
 
         for (uint256 i = 0; i < ids.length; ++i) {
             uint256 id = ids[i];
-            uint256 capLevel_ = uint256(tycoons[msg.sender][id].capacityLevel);
+            uint256 capLevel_ = uint256(business[msg.sender][id].capacityLevel);
 
             require(maxLevel[id].capacity > 0, "Cap level doesn't exist");
             require(capLevel_ + 1 < maxLevel[id].capacity + 1, "Max cap reached");
@@ -131,18 +128,18 @@ contract TycoonGame is Initializable, ITycoon, AccessControlUpgradeable, Reentra
             
             moonz.burnFrom(msg.sender, capacity[id][capLevel_].cost);
             unchecked {
-                tycoons[msg.sender][id].capacityLevel += 1;
+                business[msg.sender][id].capacityLevel += 1;
             }
             emit CapacityLevelUp(msg.sender, id, capLevel_ + 1);
         }
     }
 
     function increaseMultipliers(uint256[] calldata ids) public callerIsUser() {
-        require(ids.length > 0, "No tycoon selected");
+        require(ids.length > 0, "No moonshot selected");
     
         for (uint256 i = 0; i < ids.length; ++i) {
             uint256 id = ids[i];
-            uint256 multiplierLevel_ = uint256(tycoons[msg.sender][id].multiplierLevel);
+            uint256 multiplierLevel_ = uint256(business[msg.sender][id].multiplierLevel);
 
             require(maxLevel[id].multiplier > 0, "Cap level doesn't exist");
             require(multiplierLevel_ < maxLevel[id].multiplier + 1, "Max cap reached");
@@ -150,43 +147,45 @@ contract TycoonGame is Initializable, ITycoon, AccessControlUpgradeable, Reentra
             require(moonz.allowance(msg.sender, address(this)) >= multiplier[id][multiplierLevel_].cost, "Not enough moonz allowance"); //potentially unneeded
             
             moonz.burnFrom(msg.sender, multiplier[id][multiplierLevel_].cost);
-            tycoons[msg.sender][id].multiplierLevel = uint64(multiplierLevel_);
+            business[msg.sender][id].multiplierLevel = uint64(multiplierLevel_);
             unchecked {
-                tycoons[msg.sender][id].multiplierLevel += 1;
+                business[msg.sender][id].multiplierLevel += 1;
             }
             emit MultiplierLevelUp(msg.sender, id, multiplierLevel_ + 1);
         }
     }
 
     function _getPendingYield(uint256 id, address owner) internal returns(uint256){
-        Tycoon memory tycoon_ = tycoons[owner][id];
-        if (tycoon_.lastClaim == 0 || block.timestamp < yieldStartTime) return 0;
+        Business memory business_ = business[owner][id];
+        if (business_.lastClaim == 0 || block.timestamp < yieldStartTime) return 0;
 
-        uint256 capacityValue = capacity[id][tycoon_.capacityLevel].capacity;
-        uint256 multiplierValue = multiplier[id][tycoon_.multiplierLevel].multiplier;
+        uint256 capacityValue = capacity[id][business_.capacityLevel].capacity;
+        uint256 multiplierValue = multiplier[id][business_.multiplierLevel].multiplier;
         uint256 balance = stakedTokens[msg.sender][id];
-        tycoons[owner][id].lastClaim = uint64(block.timestamp);
+        business[owner][id].lastClaim = uint64(block.timestamp);
 
         //Checking if started every single time, check this logic again
-        uint256 _timeElapsed = tycoon_.lastClaim > yieldStartTime 
-                                ? block.timestamp - tycoon_.lastClaim 
+        uint256 _timeElapsed = business_.lastClaim > yieldStartTime 
+                                ? block.timestamp - business_.lastClaim 
                                 : block.timestamp - yieldStartTime;
 
-        emit MoonzClaimed(msg.sender, id, block.timestamp);
-        return ((_timeElapsed * yield[id]) / 1 days) * ((balance * multiplierValue) * 1 ether)
+        uint256 claimAmount = ((_timeElapsed * yield[id]) / 1 days) * ((balance * multiplierValue) * 1 ether)
                 > (((capacityValue * balance)) * 1 ether)
                 ? (((capacityValue * balance)) * 1 ether)
                 : ((_timeElapsed * yield[id]) / 1 days) * ((balance * multiplierValue) * 1 ether);
+
+        emit MoonzClaimed(msg.sender, claimAmount, id, block.timestamp);
+        return claimAmount;
     }
 
     
-    function _initializeTycoon(uint256 id) internal {
-        tycoons[msg.sender][id] = Tycoon(
+    function _initializeBusiness(uint256 id) internal {
+        business[msg.sender][id] = Business(
             1,
             1,
             uint128(block.timestamp)
         );
-        emit TycoonInitialized(msg.sender, id, 1, 1, block.timestamp);
+        emit BusinessInitialized(msg.sender, id, 1, 1, block.timestamp);
     }
 
     //ADMIN FUNCTIONS
@@ -262,28 +261,24 @@ contract TycoonGame is Initializable, ITycoon, AccessControlUpgradeable, Reentra
         }
     }
 
-    function setTycoonCost(
+    function setBusinessCost(
         uint256[] calldata ids, 
-        uint256[] calldata burnAmount, 
         uint256[] calldata moonzCost
     ) external onlyRole(GAME_ADMIN) {
-        require(ids.length == burnAmount.length && burnAmount.length == moonzCost.length, "Incorrect array lengths");
+        require(ids.length ==  moonzCost.length, "Incorrect array lengths");
         for (uint256 i = 0; i < ids.length; i++) {
             uint256 id = ids[i];
-            tycoonCost[id] = TycoonCost(
-                uint128(burnAmount[i]),
-                uint128(moonzCost[i])
-            );
+            businessCost[id] = moonzCost[i];
         }
     }
 
     function setInterfaces(
         IMoonz moonzInterface, 
-        IWGMITycoon tycoonInterface_, 
+        IMoonshotToken moonshotInterface_, 
         IERC1155Upgradeable holderInterface
         ) external onlyRole(GAME_ADMIN) {
         moonz = moonzInterface;
-        tycoonInterface = tycoonInterface_;
+        moonshotInterface = moonshotInterface_;
         tokenHolder = holderInterface;
     }
 

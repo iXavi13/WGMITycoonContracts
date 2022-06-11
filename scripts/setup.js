@@ -17,11 +17,17 @@ async function main() {
 
 	console.log("Account balance:", (await deployer.getBalance()).toString());
 
-  const moonzAddress = "";
-  const gameAddress = "";
-  const tycoonsAddress = "";
-  const configAddress = "";
-  const holderAddress = "";
+//   Moonz deploy at 0x01f1fe4c61580417306918492b044795d1ef9333
+// Game deploy at 0x664803c792E4DCbf9970Db9Bccd083BB443065cF
+// Tycoons deploy at 0xE9882A3FF8a38a4eaee68B1F6BC792EF4998bf54    
+// Config deploy at 0x60e678A4804C5740D7606e9d9e95af3C48A78b5f     
+// Holder deploy at 0x3f17dec4D1fFA2890CB4dDA22880b6132B9Ebf5b
+
+  const moonzAddress = "0x01f1fe4c61580417306918492b044795d1ef9333";
+  const gameAddress = "0x664803c792E4DCbf9970Db9Bccd083BB443065cF";
+  const tycoonsAddress = "0xE9882A3FF8a38a4eaee68B1F6BC792EF4998bf54";
+  const configAddress = "0x60e678A4804C5740D7606e9d9e95af3C48A78b5f";
+  const holderAddress = "0x3f17dec4D1fFA2890CB4dDA22880b6132B9Ebf5b";
 
   const Moonz = await ethers.getContractFactory("Moonz");
   const Game = await ethers.getContractFactory("TycoonGame");
