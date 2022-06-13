@@ -294,10 +294,6 @@ describe.only("Moonshot game failures", function () {
         // await moonzContract.connect(rosie).approve(gameContract.address, "9999999999999999999999999999999999999");
         await gameContract.setYieldStart((Math.floor(Date.now()/1000)).toString());
 
-        const options = {
-            value: ethers.utils.parseEther("0.1")
-        };
-
         await tokenContract.connect(rosie).setApprovalForAll(gameContract.address, true);
     });
 

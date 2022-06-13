@@ -9,6 +9,11 @@
       "address": "0x664803c792E4DCbf9970Db9Bccd083BB443065cF",
       "txHash": "0xc7f355f9fc242088f26c9500c87cfa021a77722a9546b1cc4826e6e7ce0e7d45",
       "kind": "transparent"
+    },
+    {
+      "address": "0x8Fa1B720711Db4B15A979EFB11D257cB2b59F5ec",
+      "txHash": "0x61fa52e7cb2078ad54c955e6fa53efdcaff77188826c25279263653f5b30bfe6",
+      "kind": "transparent"
     }
   ],
   "impls": {
@@ -373,6 +378,365 @@
               }
             ],
             "numberOfBytes": "32"
+          },
+          "t_uint128": {
+            "label": "uint128",
+            "numberOfBytes": "16"
+          },
+          "t_uint256": {
+            "label": "uint256",
+            "numberOfBytes": "32"
+          },
+          "t_uint64": {
+            "label": "uint64",
+            "numberOfBytes": "8"
+          },
+          "t_uint8": {
+            "label": "uint8",
+            "numberOfBytes": "1"
+          }
+        }
+      }
+    },
+    "0805e8a792d45671c64d1e504fb23a1cc951a7a8cafd7ed52841d989c5d26e5c": {
+      "address": "0x30bA16318BE53dC74EBe460b00C08B44935eCE45",
+      "txHash": "0x6fd22fee70e904bf031f90f1f1b0f9a6ca834dd574141e4aaa97fb52cee5756a",
+      "layout": {
+        "storage": [
+          {
+            "label": "_initialized",
+            "offset": 0,
+            "slot": "0",
+            "type": "t_uint8",
+            "contract": "Initializable",
+            "src": "@openzeppelin\\contracts-upgradeable\\proxy\\utils\\Initializable.sol:62",
+            "retypedFrom": "bool"
+          },
+          {
+            "label": "_initializing",
+            "offset": 1,
+            "slot": "0",
+            "type": "t_bool",
+            "contract": "Initializable",
+            "src": "@openzeppelin\\contracts-upgradeable\\proxy\\utils\\Initializable.sol:67"
+          },
+          {
+            "label": "__gap",
+            "offset": 0,
+            "slot": "1",
+            "type": "t_array(t_uint256)50_storage",
+            "contract": "ContextUpgradeable",
+            "src": "@openzeppelin\\contracts-upgradeable\\utils\\ContextUpgradeable.sol:36"
+          },
+          {
+            "label": "__gap",
+            "offset": 0,
+            "slot": "51",
+            "type": "t_array(t_uint256)50_storage",
+            "contract": "ERC165Upgradeable",
+            "src": "@openzeppelin\\contracts-upgradeable\\utils\\introspection\\ERC165Upgradeable.sol:41"
+          },
+          {
+            "label": "_roles",
+            "offset": 0,
+            "slot": "101",
+            "type": "t_mapping(t_bytes32,t_struct(RoleData)34_storage)",
+            "contract": "AccessControlUpgradeable",
+            "src": "@openzeppelin\\contracts-upgradeable\\access\\AccessControlUpgradeable.sol:61"
+          },
+          {
+            "label": "__gap",
+            "offset": 0,
+            "slot": "102",
+            "type": "t_array(t_uint256)49_storage",
+            "contract": "AccessControlUpgradeable",
+            "src": "@openzeppelin\\contracts-upgradeable\\access\\AccessControlUpgradeable.sol:247"
+          },
+          {
+            "label": "_status",
+            "offset": 0,
+            "slot": "151",
+            "type": "t_uint256",
+            "contract": "ReentrancyGuardUpgradeable",
+            "src": "@openzeppelin\\contracts-upgradeable\\security\\ReentrancyGuardUpgradeable.sol:38"
+          },
+          {
+            "label": "__gap",
+            "offset": 0,
+            "slot": "152",
+            "type": "t_array(t_uint256)49_storage",
+            "contract": "ReentrancyGuardUpgradeable",
+            "src": "@openzeppelin\\contracts-upgradeable\\security\\ReentrancyGuardUpgradeable.sol:74"
+          },
+          {
+            "label": "tokenHolder",
+            "offset": 0,
+            "slot": "201",
+            "type": "t_contract(IERC1155Upgradeable)735",
+            "contract": "MoonshotGame",
+            "src": "contracts\\MoonshotGame.sol:23"
+          },
+          {
+            "label": "moonshotInterface",
+            "offset": 0,
+            "slot": "202",
+            "type": "t_contract(IMoonshotToken)3945",
+            "contract": "MoonshotGame",
+            "src": "contracts\\MoonshotGame.sol:24"
+          },
+          {
+            "label": "moonz",
+            "offset": 0,
+            "slot": "203",
+            "type": "t_contract(IMoonz)3970",
+            "contract": "MoonshotGame",
+            "src": "contracts\\MoonshotGame.sol:25"
+          },
+          {
+            "label": "yieldStartTime",
+            "offset": 0,
+            "slot": "204",
+            "type": "t_uint256",
+            "contract": "MoonshotGame",
+            "src": "contracts\\MoonshotGame.sol:35"
+          },
+          {
+            "label": "paused",
+            "offset": 0,
+            "slot": "205",
+            "type": "t_bool",
+            "contract": "MoonshotGame",
+            "src": "contracts\\MoonshotGame.sol:36"
+          },
+          {
+            "label": "business",
+            "offset": 0,
+            "slot": "206",
+            "type": "t_mapping(t_address,t_mapping(t_uint256,t_struct(Business)3716_storage))",
+            "contract": "MoonshotGame",
+            "src": "contracts\\MoonshotGame.sol:39"
+          },
+          {
+            "label": "yield",
+            "offset": 0,
+            "slot": "207",
+            "type": "t_mapping(t_uint256,t_uint256)",
+            "contract": "MoonshotGame",
+            "src": "contracts\\MoonshotGame.sol:42"
+          },
+          {
+            "label": "businessCost",
+            "offset": 0,
+            "slot": "208",
+            "type": "t_mapping(t_uint256,t_uint256)",
+            "contract": "MoonshotGame",
+            "src": "contracts\\MoonshotGame.sol:43"
+          },
+          {
+            "label": "maxLevel",
+            "offset": 0,
+            "slot": "209",
+            "type": "t_mapping(t_uint256,t_struct(MaxLevels)3731_storage)",
+            "contract": "MoonshotGame",
+            "src": "contracts\\MoonshotGame.sol:44"
+          },
+          {
+            "label": "multiplier",
+            "offset": 0,
+            "slot": "210",
+            "type": "t_mapping(t_uint256,t_mapping(t_uint256,t_struct(Multipliers)3721_storage))",
+            "contract": "MoonshotGame",
+            "src": "contracts\\MoonshotGame.sol:47"
+          },
+          {
+            "label": "capacity",
+            "offset": 0,
+            "slot": "211",
+            "type": "t_mapping(t_uint256,t_mapping(t_uint256,t_struct(Capacities)3726_storage))",
+            "contract": "MoonshotGame",
+            "src": "contracts\\MoonshotGame.sol:48"
+          },
+          {
+            "label": "stakedTokens",
+            "offset": 0,
+            "slot": "212",
+            "type": "t_mapping(t_address,t_mapping(t_uint256,t_uint256))",
+            "contract": "MoonshotGame",
+            "src": "contracts\\MoonshotGame.sol:49"
+          }
+        ],
+        "types": {
+          "t_address": {
+            "label": "address",
+            "numberOfBytes": "20"
+          },
+          "t_array(t_uint256)49_storage": {
+            "label": "uint256[49]",
+            "numberOfBytes": "1568"
+          },
+          "t_array(t_uint256)50_storage": {
+            "label": "uint256[50]",
+            "numberOfBytes": "1600"
+          },
+          "t_bool": {
+            "label": "bool",
+            "numberOfBytes": "1"
+          },
+          "t_bytes32": {
+            "label": "bytes32",
+            "numberOfBytes": "32"
+          },
+          "t_contract(IERC1155Upgradeable)735": {
+            "label": "contract IERC1155Upgradeable",
+            "numberOfBytes": "20"
+          },
+          "t_contract(IMoonshotToken)3945": {
+            "label": "contract IMoonshotToken",
+            "numberOfBytes": "20"
+          },
+          "t_contract(IMoonz)3970": {
+            "label": "contract IMoonz",
+            "numberOfBytes": "20"
+          },
+          "t_mapping(t_address,t_bool)": {
+            "label": "mapping(address => bool)",
+            "numberOfBytes": "32"
+          },
+          "t_mapping(t_address,t_mapping(t_uint256,t_struct(Business)3716_storage))": {
+            "label": "mapping(address => mapping(uint256 => struct IMoonshot.Business))",
+            "numberOfBytes": "32"
+          },
+          "t_mapping(t_address,t_mapping(t_uint256,t_uint256))": {
+            "label": "mapping(address => mapping(uint256 => uint256))",
+            "numberOfBytes": "32"
+          },
+          "t_mapping(t_bytes32,t_struct(RoleData)34_storage)": {
+            "label": "mapping(bytes32 => struct AccessControlUpgradeable.RoleData)",
+            "numberOfBytes": "32"
+          },
+          "t_mapping(t_uint256,t_mapping(t_uint256,t_struct(Capacities)3726_storage))": {
+            "label": "mapping(uint256 => mapping(uint256 => struct IMoonshot.Capacities))",
+            "numberOfBytes": "32"
+          },
+          "t_mapping(t_uint256,t_mapping(t_uint256,t_struct(Multipliers)3721_storage))": {
+            "label": "mapping(uint256 => mapping(uint256 => struct IMoonshot.Multipliers))",
+            "numberOfBytes": "32"
+          },
+          "t_mapping(t_uint256,t_struct(Business)3716_storage)": {
+            "label": "mapping(uint256 => struct IMoonshot.Business)",
+            "numberOfBytes": "32"
+          },
+          "t_mapping(t_uint256,t_struct(Capacities)3726_storage)": {
+            "label": "mapping(uint256 => struct IMoonshot.Capacities)",
+            "numberOfBytes": "32"
+          },
+          "t_mapping(t_uint256,t_struct(MaxLevels)3731_storage)": {
+            "label": "mapping(uint256 => struct IMoonshot.MaxLevels)",
+            "numberOfBytes": "32"
+          },
+          "t_mapping(t_uint256,t_struct(Multipliers)3721_storage)": {
+            "label": "mapping(uint256 => struct IMoonshot.Multipliers)",
+            "numberOfBytes": "32"
+          },
+          "t_mapping(t_uint256,t_uint256)": {
+            "label": "mapping(uint256 => uint256)",
+            "numberOfBytes": "32"
+          },
+          "t_struct(Business)3716_storage": {
+            "label": "struct IMoonshot.Business",
+            "members": [
+              {
+                "label": "multiplierLevel",
+                "type": "t_uint64",
+                "offset": 0,
+                "slot": "0"
+              },
+              {
+                "label": "capacityLevel",
+                "type": "t_uint64",
+                "offset": 8,
+                "slot": "0"
+              },
+              {
+                "label": "lastClaim",
+                "type": "t_uint128",
+                "offset": 16,
+                "slot": "0"
+              }
+            ],
+            "numberOfBytes": "32"
+          },
+          "t_struct(Capacities)3726_storage": {
+            "label": "struct IMoonshot.Capacities",
+            "members": [
+              {
+                "label": "capacity",
+                "type": "t_uint128",
+                "offset": 0,
+                "slot": "0"
+              },
+              {
+                "label": "cost",
+                "type": "t_uint128",
+                "offset": 16,
+                "slot": "0"
+              }
+            ],
+            "numberOfBytes": "32"
+          },
+          "t_struct(MaxLevels)3731_storage": {
+            "label": "struct IMoonshot.MaxLevels",
+            "members": [
+              {
+                "label": "capacity",
+                "type": "t_uint128",
+                "offset": 0,
+                "slot": "0"
+              },
+              {
+                "label": "multiplier",
+                "type": "t_uint128",
+                "offset": 16,
+                "slot": "0"
+              }
+            ],
+            "numberOfBytes": "32"
+          },
+          "t_struct(Multipliers)3721_storage": {
+            "label": "struct IMoonshot.Multipliers",
+            "members": [
+              {
+                "label": "multiplier",
+                "type": "t_uint128",
+                "offset": 0,
+                "slot": "0"
+              },
+              {
+                "label": "cost",
+                "type": "t_uint128",
+                "offset": 16,
+                "slot": "0"
+              }
+            ],
+            "numberOfBytes": "32"
+          },
+          "t_struct(RoleData)34_storage": {
+            "label": "struct AccessControlUpgradeable.RoleData",
+            "members": [
+              {
+                "label": "members",
+                "type": "t_mapping(t_address,t_bool)",
+                "offset": 0,
+                "slot": "0"
+              },
+              {
+                "label": "adminRole",
+                "type": "t_bytes32",
+                "offset": 0,
+                "slot": "1"
+              }
+            ],
+            "numberOfBytes": "64"
           },
           "t_uint128": {
             "label": "uint128",
