@@ -86,4 +86,9 @@ interface IMoonshot {
         uint256 capacityMaxLevel,
         uint256 multiplierMaxLevel
     );
+
+    event CostSet(
+        uint256 indexed id,
+        uint256 cost
+    );
 }

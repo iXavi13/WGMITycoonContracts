@@ -78,7 +78,7 @@ contract MoonshotGame is Initializable, IMoonshot, AccessControlUpgradeable, Ree
         uint256 claimAmount = 0;
 
         for (uint256 i = 0; i < ids.length;) {
-            claimAmount += _getPendingYield(ids[i], msg.sender);
+            claimAmount += _getPendingYield(ids[i], msg.sender); //TODO: Remove msg.sender parameter. Unnecessary
             unchecked { ++i; }
         }
 
@@ -126,7 +126,7 @@ contract MoonshotGame is Initializable, IMoonshot, AccessControlUpgradeable, Ree
             require(moonz.balanceOf(msg.sender) >= capacity[id][capLevel_].cost, "Not enough moonz");
             require(moonz.allowance(msg.sender, address(this)) >= capacity[id][capLevel_].cost, "Not enough moonz allowance");
             
-            moonz.burnFrom(msg.sender, capacity[id][capLevel_].cost);
+            moonz.burnFrom(msg.sender, capacity[id][capLevel_].cost * 1 ether);
             unchecked {
                 business[msg.sender][id].capacityLevel += 1;
             }
@@ -146,7 +146,7 @@ contract MoonshotGame is Initializable, IMoonshot, AccessControlUpgradeable, Ree
             require(moonz.balanceOf(msg.sender) >= multiplier[id][multiplierLevel_].cost, "Not enough moonz");
             require(moonz.allowance(msg.sender, address(this)) >= multiplier[id][multiplierLevel_].cost, "Not enough moonz allowance"); //potentially unneeded
             
-            moonz.burnFrom(msg.sender, multiplier[id][multiplierLevel_].cost);
+            moonz.burnFrom(msg.sender, multiplier[id][multiplierLevel_].cost * 1 ether);
             business[msg.sender][id].multiplierLevel = uint64(multiplierLevel_);
             unchecked {
                 business[msg.sender][id].multiplierLevel += 1;
@@ -169,12 +169,12 @@ contract MoonshotGame is Initializable, IMoonshot, AccessControlUpgradeable, Ree
                                 ? block.timestamp - business_.lastClaim 
                                 : block.timestamp - yieldStartTime;
 
-        uint256 claimAmount = ((_timeElapsed * yield[id]) / 1 days) * ((balance * multiplierValue) * 1 ether)
+        uint256 claimAmount = (((_timeElapsed * yield[id] * 1 ether) / 1 days) * (balance * multiplierValue))/1000
                 > (((capacityValue * balance)) * 1 ether)
                 ? (((capacityValue * balance)) * 1 ether)
-                : ((_timeElapsed * yield[id]) / 1 days) * ((balance * multiplierValue) * 1 ether);
+                : (((_timeElapsed * yield[id] * 1 ether) / 1 days) * (balance * multiplierValue))/1000;
 
-        emit MoonzClaimed(msg.sender, claimAmount, id, block.timestamp);
+        emit MoonzClaimed(msg.sender, id, claimAmount, block.timestamp);
         return claimAmount;
     }
 
@@ -184,7 +184,7 @@ contract MoonshotGame is Initializable, IMoonshot, AccessControlUpgradeable, Ree
             1,
             1,
             uint128(block.timestamp)
-        );
+        ); //TO DO: remove levels from initializting, fix server index
         emit BusinessInitialized(msg.sender, id, 1, 1, block.timestamp);
     }
 
@@ -268,7 +268,9 @@ contract MoonshotGame is Initializable, IMoonshot, AccessControlUpgradeable, Ree
         require(ids.length ==  moonzCost.length, "Incorrect array lengths");
         for (uint256 i = 0; i < ids.length; i++) {
             uint256 id = ids[i];
-            businessCost[id] = moonzCost[i];
+            uint256 cost = moonzCost[i];
+            businessCost[id] = cost;
+            emit CostSet(id, cost);
         }
     }
 
